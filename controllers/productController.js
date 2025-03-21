@@ -1,5 +1,4 @@
 import pool from "../config/db.config.js";
-import slugify from "slugify";
 
 const getAllProducts = async (req, res) => {
   try {
@@ -24,13 +23,8 @@ const getProductById = async (req, res) => {
   }
 };
 const createProduct = async (req, res) => {
-  const { name, price, description, stock, category } = req.body;
+  const { name, price, description, stock, category, slug } = req.body;
   try {
-    const slug = slugify(name, {
-      lower: true,
-      strict: true,
-      replacement: "-",
-    });
     const newProduct = await pool.query(
       "INSERT INTO products (name, price, description, stock, category,slug) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [name, price, description, stock, category, slug]
@@ -42,11 +36,8 @@ const createProduct = async (req, res) => {
 };
 const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { name, price, description, stock, category } = req.body;
+  const { name, price, description, stock, category, slug } = req.body;
   try {
-    const slug = name
-      ? slugify(name, { lower: true, strict: true, replacement: "-" })
-      : undefined;
     const updatedProduct = await pool.query(
       `UPDATE products 
        SET name = COALESCE($1, name), 

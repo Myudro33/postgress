@@ -1,4 +1,5 @@
 import express from "express";
+import SlugifyMiddleware from "../middlewares/SlugifyMiddleware.js";
 import {
   createProduct,
   deleteProduct,
@@ -8,10 +9,11 @@ import {
 } from "../controllers/productController.js";
 const router = express.Router();
 
-router.get("/", getAllProducts);
-router.get("/:id", getProductById);
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+router.route("").get(getAllProducts).post(SlugifyMiddleware, createProduct);
+router
+  .route("/:id")
+  .get(getProductById)
+  .put(SlugifyMiddleware, updateProduct)
+  .delete(deleteProduct);
 
 export default router;
