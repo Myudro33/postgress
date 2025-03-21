@@ -67,5 +67,28 @@ const updateProduct = async (req, res) => {
     res.status(500).json({ message: "server error", error: error.stack });
   }
 };
-
-export { getAllProducts, getProductById, createProduct, updateProduct };
+const deleteProduct = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedProduct = await pool.query(
+      "DELETE FROM products WHERE id = $1 RETURNING *",
+      [id]
+    );
+    if (deletedProduct.rows.length === 0) {
+      return res.status(404).json({ message: "product not found" });
+    }
+    res.json({
+      message: "product deleted successfully",
+      data: deletedProduct.rows[0],
+    });
+  } catch (error) {
+    res.status(500).json({ message: "server error", error: error.stack });
+  }
+};
+export {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+};
