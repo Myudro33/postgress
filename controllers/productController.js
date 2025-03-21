@@ -40,5 +40,32 @@ const createProduct = async (req, res) => {
     res.status(500).json({ message: "server error", error: error.stack });
   }
 };
+const updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const { name, price, description, stock, category } = req.body;
+  try {
+    const slug = name
+      ? slugify(name, { lower: true, strict: true, replacement: "-" })
+      : undefined;
+    const updatedProduct = await pool.query(
+      `UPDATE products 
+       SET name = COALESCE($1, name), 
+           price = COALESCE($2, price), 
+           description = COALESCE($3, description), 
+           stock = COALESCE($4, stock), 
+           category = COALESCE($5, category), 
+           slug = COALESCE($6, slug)
+       WHERE id = $7 
+       RETURNING *`,
+      [name, price, description, stock, category, slug, id]
+    );
+    if (updatedProduct.rows.length === 0) {
+      return res.status(404).json({ message: "product not found" });
+    }
+    res.json({ data: updatedProduct.rows[0] });
+  } catch (error) {
+    res.status(500).json({ message: "server error", error: error.stack });
+  }
+};
 
-export { getAllProducts, getProductById, createProduct };
+export { getAllProducts, getProductById, createProduct, updateProduct };
