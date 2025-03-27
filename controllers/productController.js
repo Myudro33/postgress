@@ -1,9 +1,13 @@
+import { PrismaClient } from "@prisma/client";
 import pool from "../config/db.config.js";
 
+const prisma = new PrismaClient();
 const getAllProducts = async (req, res) => {
   try {
-    const products = await pool.query("SELECT * FROM products");
-    res.json({ data: products.rows });
+    const products = await prisma.products.findMany({
+      include: { category: true },
+    });
+    res.json({ data: products });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.stack });
   }
@@ -11,13 +15,13 @@ const getAllProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   const { id } = req.params;
   try {
-    const products = await pool.query("SELECT * FROM products WHERE id = $1", [
-      id,
-    ]);
-    if (products.rows.length === 0) {
+    const product = await prisma.products.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!product) {
       return res.json({ message: "product doesnt found" });
     }
-    res.json({ data: products.rows });
+    res.json({ data: product });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.stack });
   }
@@ -25,11 +29,10 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   const { name, price, description, stock, category, slug } = req.body;
   try {
-    const newProduct = await pool.query(
-      "INSERT INTO products (name, price, description, stock, category,slug) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [name, price, description, stock, category, slug]
-    );
-    res.status(201).json({ data: newProduct.rows[0] });
+    const newProduct = await prisma.products.create({
+      data: { name, price, category, description, slug, stock },
+    });
+    res.status(201).json({ data: newProduct });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.stack });
   }
@@ -38,22 +41,14 @@ const updateProduct = async (req, res) => {
   const { id } = req.params;
   const { name, price, description, stock, category, slug } = req.body;
   try {
-    const updatedProduct = await pool.query(
-      `UPDATE products 
-       SET name = COALESCE($1, name), 
-           price = COALESCE($2, price), 
-           description = COALESCE($3, description), 
-           stock = COALESCE($4, stock), 
-           category = COALESCE($5, category), 
-           slug = COALESCE($6, slug)
-       WHERE id = $7 
-       RETURNING *`,
-      [name, price, description, stock, category, slug, id]
-    );
-    if (updatedProduct.rows.length === 0) {
+    const updatedProduct = await prisma.products.update({
+      where: { id: parseInt(id) },
+      data: { name, price, category, description, slug, stock },
+    });
+    if (!updateProduct) {
       return res.status(404).json({ message: "product not found" });
     }
-    res.json({ data: updatedProduct.rows[0] });
+    res.json({ data: updatedProduct });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.stack });
   }
@@ -61,20 +56,36 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedProduct = await pool.query(
-      "DELETE FROM products WHERE id = $1 RETURNING *",
-      [id]
-    );
-    if (deletedProduct.rows.length === 0) {
+    const deletedProduct = await prisma.products.delete({
+      where: { id: parseInt(id) },
+    });
+    if (!deletedProduct) {
       return res.status(404).json({ message: "product not found" });
     }
     res.json({
       message: "product deleted successfully",
-      data: deletedProduct.rows[0],
+      data: deletedProduct,
     });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.stack });
   }
+};
+const getCategoryStats = async (req, res) => {
+  const result = await prisma.products.groupBy({
+    by: ["category"],
+    _count: true,
+    _avg: { price: true },
+    _min: { price: true },
+    _max: { price: true },
+  });
+  const formatedResult = result.map((item) => ({
+    category: item.category,
+    count: item._count,
+    average: item._avg.price,
+    min: item._min.price,
+    max: item._max.price,
+  }));
+  res.json({ data: formatedResult });
 };
 export {
   getAllProducts,
@@ -82,4 +93,5 @@ export {
   createProduct,
   updateProduct,
   deleteProduct,
+  getCategoryStats,
 };
