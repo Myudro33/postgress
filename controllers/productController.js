@@ -87,6 +87,18 @@ const getCategoryStats = async (req, res) => {
   }));
   res.json({ data: formatedResult });
 };
+const buyProduct = async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  try {
+    const userProduct = await prisma.usersProducts.create({
+      data: { productId: parseInt(id), userId: parseInt(userId) },
+    });
+    res.status(201).json({ data: userProduct });
+  } catch (error) {
+    res.status(500).json({ message: "server error", error: error.stack });
+  }
+};
 export {
   getAllProducts,
   getProductById,
@@ -94,4 +106,5 @@ export {
   updateProduct,
   deleteProduct,
   getCategoryStats,
+  buyProduct,
 };
