@@ -91,10 +91,31 @@ const buyProduct = async (req, res) => {
   const { id } = req.params;
   const { userId } = req.body;
   try {
+    const product = await prisma.products.findUnique({
+      where: { id: parseInt(id) },
+    });
+    const user = await prisma.users.findUnique({
+      where: { id: parseInt(userId) },
+    });
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    if (!product) {
+      return res.status(404).json({ message: "product not found" });
+    }
+    if (product.stock < 1) {
+      return res.status(404).json({ message: "product is out of stock" });
+    }
+    await prisma.products.update({
+      where: { id: parseInt(id) },
+      data: { stock: product.stock - 1 },
+    });
     const userProduct = await prisma.usersProducts.create({
       data: { productId: parseInt(id), userId: parseInt(userId) },
     });
-    res.status(201).json({ data: userProduct });
+    res
+      .status(201)
+      .json({ message: "You bought product successfully", data: userProduct });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.stack });
   }

@@ -37,10 +37,9 @@ model users {
 }
 
 model usersProducts {
+  id        Int      @id @unique @default(autoincrement())
   productId Int
   products  products @relation(fields: [productId], references: [id])
   userId    Int
   users     users    @relation(fields: [userId], references: [id])
-
-  @@id([productId, userId])
 }

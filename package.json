@@ -6,6 +6,9 @@
   "scripts": {
     "start": "nodemon index.js"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "author": "Nika Qanashvili",
   "license": "ISC",
   "description": "",

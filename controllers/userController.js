@@ -3,7 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const getUsers = async (req, res) => {
   try {
-    const users = await prisma.users.findMany();
+    const users = await prisma.users.findMany({
+      include: { usersProducts: { include: { products: true } } },
+    });
     res.json({ data: users });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.stack });
