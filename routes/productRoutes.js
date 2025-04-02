@@ -9,11 +9,12 @@ import {
   getProductById,
   updateProduct,
 } from "../controllers/productController.js";
+import { auth } from "../middlewares/auth.js";
 const router = express.Router();
 
 router.route("").get(getAllProducts).post(SlugifyMiddleware, createProduct);
 router.route("/stats").get(getCategoryStats);
-router.route("/buyProduct/:id").post(buyProduct);
+router.route("/buyProduct/:id").post(auth, buyProduct);
 router
   .route("/:id")
   .get(getProductById)

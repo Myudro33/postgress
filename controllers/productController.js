@@ -89,13 +89,13 @@ const getCategoryStats = async (req, res) => {
 };
 const buyProduct = async (req, res) => {
   const { id } = req.params;
-  const { userId } = req.body;
+  const userId = req.user.id;
   try {
     const product = await prisma.products.findUnique({
       where: { id: parseInt(id) },
     });
     const user = await prisma.users.findUnique({
-      where: { id: parseInt(userId) },
+      where: { id: userId },
     });
     if (!user) {
       return res.status(404).json({ message: "user not found" });

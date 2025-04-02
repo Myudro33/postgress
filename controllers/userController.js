@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 const getUsers = async (req, res) => {
   try {
@@ -56,4 +57,40 @@ const deleteUser = async (req, res) => {
   }
 };
 
-export { getUsers, createUser, updateUser, deleteUser };
+const signUp = async (req, res) => {
+  const { firstName, lastName, email, password } = req.body;
+  console.log(req.body);
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const user = await prisma.users.create({
+      data: { firstName, lastName, email, password: hashedPassword },
+    });
+    res.json({ message: "user created", data: user });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "server error", error: error.message });
+  }
+};
+const signIn = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await prisma.users.findUnique({
+    where: { email: email },
+  });
+  if (!user) {
+    return res
+      .status(500)
+      .json({ message: "server error", error: error.message });
+  }
+  const ispasswordValid = await bcrypt.compare(password, user.password);
+  if (!ispasswordValid) {
+    return res.status(401).json({ message: "wrong password" });
+  }
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+  res.json({ message: "login success", data: token });
+};
+
+export { signIn, signUp, getUsers, createUser, updateUser, deleteUser };

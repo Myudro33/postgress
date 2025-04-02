@@ -16,6 +16,13 @@ async function main() {
       description: "Apparel and fashion",
     },
   });
+  const user = await prisma.users.create({
+    data: {
+      firstName: "test",
+      lastName: "surname",
+      password: "password",
+    },
+  });
 
   // Create products and connect to categories
   await prisma.products.createMany({
