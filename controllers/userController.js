@@ -14,7 +14,7 @@ const getUsers = async (req, res) => {
   }
 };
 const createUser = async (req, res) => {
-  const { firstName, lastName, email, roleId } = req.body;
+  const { firstName, lastName, email, roleId = 1 } = req.body;
   try {
     const newUser = await prisma.users.create({
       data: { firstName, lastName, email, roleId },
@@ -26,11 +26,12 @@ const createUser = async (req, res) => {
 };
 const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { firstName, lastName, email } = req.body;
+  const { firstName, lastName, email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const updatedUser = await prisma.users.update({
       where: { id: parseInt(id) },
-      data: { firstName, lastName, email },
+      data: { firstName, lastName, email, password: hashedPassword },
     });
     if (!updateUser) {
       return res.status(404).json({ message: "user not found" });
