@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import pool from "../config/db.config.js";
 
 const prisma = new PrismaClient();
 const getAllProducts = async (req, res) => {
@@ -27,7 +26,7 @@ const getProductById = async (req, res) => {
   }
 };
 const createProduct = async (req, res) => {
-  const { name, price, description, stock, category, slug } = req.body;
+  const { name, price, description, stock = 10, category, slug } = req.body;
   try {
     const newProduct = await prisma.products.create({
       data: { name, price, category, description, slug, stock },
