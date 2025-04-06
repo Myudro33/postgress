@@ -155,3 +155,69 @@
  *       404:
  *         description: User not found
  */
+
+/**
+ * @swagger
+ * /users/signup:
+ *   post:
+ *     summary: Sign up a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - password
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 description: The first name of the user
+ *               lastName:
+ *                 type: string
+ *                 description: The last name of the user
+ *               email:
+ *                 type: string
+ *                 description: The email of the user
+ *               password:
+ *                 type: string
+ *                 description: The password of the user
+ *     responses:
+ *       201:
+ *         description: User signed up successfully
+ *       400:
+ *         description: Invalid input
+ */
+
+/**
+ * @swagger
+ * /users/signin:
+ *   post:
+ *     summary: Sign in a user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: The email of the user
+ *               password:
+ *                 type: string
+ *                 description: The password of the user
+ *     responses:
+ *       200:
+ *         description: User signed in successfully
+ *       401:
+ *         description: Invalid credentials
+ */
