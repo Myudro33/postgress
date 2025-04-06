@@ -9,15 +9,20 @@ import {
   getProductById,
   updateProduct,
 } from "../controllers/productController.js";
-import { auth } from "../middlewares/auth.js";
+import { auth, isManager, isCostumer } from "../middlewares/auth.js";
+
 const router = express.Router();
 
-router.route("").get(getAllProducts).post(SlugifyMiddleware, createProduct);
-router.route("/stats").get(getCategoryStats);
-router.route("/buyProduct/:id").post(auth, buyProduct);
+router
+  .route("")
+  .get(auth, isCostumer, getAllProducts)
+  .post(auth, isManager, SlugifyMiddleware, createProduct);
+router.route("/stats").get(auth, isManager, getCategoryStats);
+router.route("/buyProduct/:id").post(auth, isCostumer, buyProduct);
 router
   .route("/:id")
-  .get(getProductById)
-  .put(SlugifyMiddleware, updateProduct)
-  .delete(deleteProduct);
+  .get(auth, isCostumer, getProductById)
+  .put(SlugifyMiddleware, auth, isManager, updateProduct)
+  .delete(auth, isManager, deleteProduct);
+
 export default router;
