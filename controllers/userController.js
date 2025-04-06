@@ -14,10 +14,10 @@ const getUsers = async (req, res) => {
   }
 };
 const createUser = async (req, res) => {
-  const { firstName, lastName, email } = req.body;
+  const { firstName, lastName, email, roleId } = req.body;
   try {
     const newUser = await prisma.users.create({
-      data: { firstName, lastName, email },
+      data: { firstName, lastName, email, roleId },
     });
     res.status(201).json({ data: newUser });
   } catch (error) {
@@ -60,8 +60,6 @@ const deleteUser = async (req, res) => {
 
 const signUp = async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
-  console.log(req.body);
-
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const user = await prisma.users.create({
@@ -78,36 +76,41 @@ const signIn = async (req, res) => {
   const { email, password } = req.body;
   const user = await prisma.users.findUnique({
     where: { email: email },
+    include: { roles: true },
   });
   if (!user) {
-    return res
-      .status(500)
-      .json({ message: "server error", error: error.message });
+    return res.status(500).json({ message: "incorect credentials" });
   }
   const ispasswordValid = await bcrypt.compare(password, user.password);
   if (!ispasswordValid) {
     return res.status(401).json({ message: "wrong password" });
   }
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
-  res.json({ message: "login success", data: token });
+  const token = jwt.sign(
+    { id: user.id, role: user.roles.name },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "1h",
+    }
+  );
+  delete user.password;
+  res.json({ message: "login success", token: token, data: user });
 };
 const profile = async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.split(" ")[1];
     if (!token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.users.findUnique({
       where: { id: decoded.id },
+      include: { roles: true },
     });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const { id, firstName, lastName, email } = user;
-    res.json({ data: id, firstName, lastName, email });
+    delete user.password;
+    res.json({ data: user });
   } catch (error) {
     res.status(500).json({ message: "server error", error: error.message });
   }
