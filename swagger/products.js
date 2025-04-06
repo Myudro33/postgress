@@ -1,6 +1,11 @@
 /**
  * @swagger
  * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  *   schemas:
  *     Product:
  *       type: object
@@ -58,6 +63,8 @@
  *   get:
  *     summary: Returns the list of all the products
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: The list of the products
@@ -75,6 +82,8 @@
  *   get:
  *     summary: Get the product by id
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -99,14 +108,34 @@
  *   post:
  *     summary: Create a new product
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Product'
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - description
+ *               - categoryId
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the product
+ *               price:
+ *                 type: number
+ *                 description: The price of the product
+ *               description:
+ *                 type: string
+ *                 description: The description of the product
+ *               categoryId:
+ *                 type: number
+ *                 description: The ID of the category the product belongs to
  *     responses:
- *       200:
+ *       201:
  *         description: The product was successfully created
  *         content:
  *           application/json:
@@ -122,6 +151,8 @@
  *   put:
  *     summary: Update the product by the id
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -134,7 +165,25 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Product'
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - description
+ *               - categoryId
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the product
+ *               price:
+ *                 type: number
+ *                 description: The price of the product
+ *               description:
+ *                 type: string
+ *                 description: The description of the product
+ *               categoryId:
+ *                 type: number
+ *                 description: The ID of the category the product belongs to
  *     responses:
  *       200:
  *         description: The product was updated
@@ -154,6 +203,8 @@
  *   delete:
  *     summary: Remove the product by id
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

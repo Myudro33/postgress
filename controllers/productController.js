@@ -26,10 +26,10 @@ const getProductById = async (req, res) => {
   }
 };
 const createProduct = async (req, res) => {
-  const { name, price, description, stock = 10, category, slug } = req.body;
+  const { name, price, description, stock = 10, categoryId, slug } = req.body;
   try {
     const newProduct = await prisma.products.create({
-      data: { name, price, category, description, slug, stock },
+      data: { name, price, categoryId, description, slug, stock },
     });
     res.status(201).json({ data: newProduct });
   } catch (error) {
@@ -38,11 +38,10 @@ const createProduct = async (req, res) => {
 };
 const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { name, price, description, stock, category, slug } = req.body;
   try {
     const updatedProduct = await prisma.products.update({
       where: { id: parseInt(id) },
-      data: { name, price, category, description, slug, stock },
+      data: req.body,
     });
     if (!updateProduct) {
       return res.status(404).json({ message: "product not found" });
