@@ -35,6 +35,8 @@ model users {
   email         String          @unique @db.VarChar(255)
   password      String          @db.VarChar(255)
   usersProducts usersProducts[]
+  roleId        Int             @default(autoincrement())
+  roles         roles           @relation(fields: [roleId], references: [id])
 }
 
 model usersProducts {
@@ -43,4 +45,10 @@ model usersProducts {
   products  products @relation(fields: [productId], references: [id])
   userId    Int
   users     users    @relation(fields: [userId], references: [id])
+}
+
+model roles {
+  id    Int     @id @unique @default(autoincrement())
+  name  String  @db.VarChar(255)
+  users users[]
 }
