@@ -145,6 +145,12 @@ const forgotPassword = async (req, res) => {
         <p>If you didn't request this, please ignore this email.</p>`
     );
     if (isEmailSent) {
+      await prisma.users.update({
+        where: { id: user.id },
+        data: {
+          attempt: 0,
+        },
+      });
       res.json({ message: "OTP sent to email" });
     } else {
       res.status(500).json({ message: "server error", error: error.message });
@@ -163,9 +169,21 @@ const resetPassword = async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "user not found" });
   }
-  console.log(user);
-
-  if (user.otpCodes[0].code !== otpCode) {
+  if (user.attempt == 5) {
+    await prisma.otpCodes.deleteMany({
+      where: { userId: user.id },
+    });
+    return res
+      .status(400)
+      .json({ message: "OTP deleted reason: too many attempts" });
+  }
+  if (user?.otpCodes[0]?.code !== otpCode) {
+    await prisma.users.update({
+      where: { id: user.id },
+      data: {
+        attempt: user.attempt + 1,
+      },
+    });
     return res.status(400).json({ message: "invalid OTP" });
   }
   const currentTime = new Date();
@@ -175,7 +193,7 @@ const resetPassword = async (req, res) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   const updatedUser = await prisma.users.update({
     where: { id: user.id },
-    data: { password: hashedPassword },
+    data: { password: hashedPassword, attempt: 0 },
   });
   await prisma.otpCodes.deleteMany({
     where: { userId: user.id },
