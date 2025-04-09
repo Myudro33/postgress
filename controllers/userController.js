@@ -127,9 +127,12 @@ const forgotPassword = async (req, res) => {
   }
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-  await prisma.users.update({
-    where: { id: user.id },
-    data: { otpCode, otpExpiry },
+  await prisma.otpCodes.create({
+    data: {
+      userId: user.id,
+      code: otpCode,
+      expiry: otpExpiry,
+    },
   });
   try {
     const isEmailSent = await sendMail(
@@ -155,21 +158,27 @@ const resetPassword = async (req, res) => {
   const { email, otpCode, newPassword } = req.body;
   const user = await prisma.users.findUnique({
     where: { email: email },
+    include: { otpCodes: true },
   });
   if (!user) {
     return res.status(404).json({ message: "user not found" });
   }
-  if (user.otpCode !== otpCode) {
+  console.log(user);
+
+  if (user.otpCodes[0].code !== otpCode) {
     return res.status(400).json({ message: "invalid OTP" });
   }
   const currentTime = new Date();
-  if (user.otpExpiry < currentTime) {
+  if (user.otpCodes[0].expiry < currentTime) {
     return res.status(400).json({ message: "OTP expired" });
   }
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   const updatedUser = await prisma.users.update({
     where: { id: user.id },
-    data: { password: hashedPassword, otpCode: null, otpExpiry: null },
+    data: { password: hashedPassword },
+  });
+  await prisma.otpCodes.deleteMany({
+    where: { userId: user.id },
   });
   if (!updatedUser) {
     return res.status(500).json({ message: "server error" });
