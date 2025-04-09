@@ -7,6 +7,8 @@ import {
   signIn,
   signUp,
   updateUser,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/userController.js";
 import { auth, isAdmin, isCostumer } from "../middlewares/auth.js";
 
@@ -20,5 +22,7 @@ router
 router.route("/signup").post(signUp);
 router.route("/signIn").post(signIn);
 router.route("/profile").get(auth, isCostumer, profile);
+router.route("/forgot-password").post(forgotPassword);
+router.route("/reset-password").post(resetPassword);
 
 export default router;
