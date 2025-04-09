@@ -38,6 +38,7 @@ model users {
   roleId        Int             @default(autoincrement())
   roles         roles           @relation(fields: [roleId], references: [id])
   otpCodes      otpCodes[]
+  attempt       Int?
 }
 
 model usersProducts {
