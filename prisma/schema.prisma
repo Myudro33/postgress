@@ -37,6 +37,8 @@ model users {
   usersProducts usersProducts[]
   roleId        Int             @default(autoincrement())
   roles         roles           @relation(fields: [roleId], references: [id])
+  otpCode       String?         @db.VarChar(6)
+  otpExpiry     DateTime?       @db.Timestamp(6)
 }
 
 model usersProducts {
