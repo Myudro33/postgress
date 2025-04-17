@@ -1,4 +1,5 @@
 import express from "express";
+import upload from "../middlewares/uploadFile.js";
 import SlugifyMiddleware from "../middlewares/SlugifyMiddleware.js";
 import {
   buyProduct,
@@ -8,6 +9,7 @@ import {
   getCategoryStats,
   getProductById,
   updateProduct,
+  uploadProductExcel,
 } from "../controllers/productController.js";
 import { auth, isManager, isCostumer } from "../middlewares/auth.js";
 
@@ -24,5 +26,7 @@ router
   .get(auth, isCostumer, getProductById)
   .put(SlugifyMiddleware, auth, isManager, updateProduct)
   .delete(auth, isManager, deleteProduct);
-
+router
+  .route("/upload-product-excel")
+  .post(upload.single("products"), uploadProductExcel);
 export default router;

@@ -1,4 +1,7 @@
 import { PrismaClient } from "@prisma/client";
+import xlsx from "xlsx";
+import fs from "fs";
+import path from "path";
 
 const prisma = new PrismaClient();
 const getAllProducts = async (req, res) => {
@@ -118,6 +121,39 @@ const buyProduct = async (req, res) => {
     res.status(500).json({ message: "server error", error: error.stack });
   }
 };
+
+const uploadProductExcel = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+  const workbook = xlsx.readFile(req.file.path);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const data = xlsx.utils.sheet_to_json(sheet);
+  const products = data.map((item) => ({
+    name: item.name,
+    price: item.price,
+    description: item.description,
+    stock: item.stock,
+    categoryId: item.categoryId,
+    slug: item.slug,
+  }));
+  const createdProducts = await prisma.products.createMany({
+    data: products,
+  });
+  res.status(201).json({
+    message: "Products uploaded successfully",
+    data: createdProducts,
+  });
+  const filePath = path.join(__dirname, "..", "uploads", req.file.filename);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error("Error deleting file:", err);
+    } else {
+      console.log("File deleted successfully");
+    }
+  });
+};
 export {
   getAllProducts,
   getProductById,
@@ -126,4 +162,5 @@ export {
   deleteProduct,
   getCategoryStats,
   buyProduct,
+  uploadProductExcel,
 };
