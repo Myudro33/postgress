@@ -204,6 +204,23 @@ const resetPassword = async (req, res) => {
   res.json({ message: "password updated successfully" });
 };
 
+const uploadProfilePicture = async (req, res) => {
+  const { id } = req.params;
+  const file = req.file;
+  if (!file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+  try {
+    const updatedUser = await prisma.users.update({
+      where: { id: parseInt(id) },
+      data: { profilePicture: file.path },
+    });
+    res.json({ message: "Profile picture updated", data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "server error", error: error.stack });
+  }
+};
+
 export {
   signIn,
   signUp,
@@ -214,4 +231,5 @@ export {
   profile,
   forgotPassword,
   resetPassword,
+  uploadProfilePicture,
 };
